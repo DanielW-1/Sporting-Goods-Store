@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     // Verify user purchased this product in a delivered order
     const { data: purchased } = await supabase
       .from('order_items')
-      .select('id, orders!inner(customer_id, status)')
+      .select('id, orders!inner(id, customer_id, status)')
       .eq('product_id', product_id)
       .eq('orders.customer_id', profile.id)
       .eq('orders.status', 'delivered')
@@ -26,6 +26,8 @@ export async function POST(request: Request) {
     if (!purchased || purchased.length === 0) {
       throw new ApiError(403, 'You can only review products you have purchased and received')
     }
+
+    const orderId = (purchased[0] as any).orders?.id ?? null
 
     // Check no existing review
     const { data: existing } = await supabase
@@ -39,7 +41,7 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase
       .from('reviews')
-      .insert({ product_id, customer_id: profile.id, rating, comment })
+      .insert({ product_id, customer_id: profile.id, order_id: orderId, rating, comment })
       .select()
       .single()
 

@@ -25,6 +25,8 @@ export async function GET(
     }
 
     let driver_name: string | null = null
+    let driver_location: { latitude: number; longitude: number; recorded_at: string } | null = null
+
     if ((order as any).driver_id) {
       const { data: driver } = await supabase
         .from('profiles')
@@ -35,6 +37,20 @@ export async function GET(
       if (driver) {
         driver_name = `${(driver as any).first_name} ${(driver as any).last_name}`
       }
+
+      // Fetch the most recent driver location for this order
+      const { data: location } = await supabase
+        .from('driver_locations')
+        .select('latitude, longitude, recorded_at')
+        .eq('driver_id', (order as any).driver_id)
+        .eq('order_id', id)
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (location) {
+        driver_location = location as any
+      }
     }
 
     return Response.json({
@@ -42,6 +58,7 @@ export async function GET(
       tracking_number: (order as any).tracking_number,
       expected_delivery_date: (order as any).expected_delivery_date,
       driver_name,
+      driver_location,
     })
   } catch (error) {
     return handleApiError(error)

@@ -37,12 +37,12 @@ export async function PUT(
       throw new ApiError(400, 'expected_delivery_date is required when shipping an order')
     }
 
-    const updates: Record<string, string> = { status: newStatus }
-    if (expected_delivery_date) updates.expected_delivery_date = expected_delivery_date
-
     const { data: updated, error: updateErr } = await supabase
       .from('orders')
-      .update(updates)
+      .update({
+        status: newStatus,
+        ...(expected_delivery_date ? { expected_delivery_date } : {}),
+      })
       .eq('id', id)
       .select()
       .single()

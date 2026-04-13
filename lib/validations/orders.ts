@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const checkoutSchema = z.object({
   payment_method: z.enum(['credit_card', 'debit_card', 'cash_on_delivery']),
   shipping_address: z.string().min(1, 'Shipping address is required'),
+  notes: z.string().optional(),
   use_reward_points: z.boolean().optional().default(false),
   use_discount_points: z.boolean().optional().default(false),
 })

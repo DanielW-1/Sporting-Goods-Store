@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     } else {
       const status      = searchParams.get('status')
       const assignedTo  = searchParams.get('assigned_to')
-      if (status)     query = query.eq('status', status)
+      if (status)     query = query.eq('status', status as import('@/lib/supabase/types').TicketStatus)
       if (assignedTo) query = query.eq('assigned_to', assignedTo)
     }
 

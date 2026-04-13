@@ -11,6 +11,7 @@ export const createProductSchema = z.object({
   size: z.string().optional(),
   color: z.string().optional(),
   stock_quantity: z.number().int().min(0).default(0),
+  low_stock_threshold: z.number().int().min(0).optional(),
   release_date: z.string().optional(),
   image_url: z.string().url().optional().or(z.literal('')),
 })

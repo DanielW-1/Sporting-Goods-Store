@@ -86,14 +86,8 @@ export async function POST(request: Request) {
       orderItemsData.map(i => ({ ...i, order_id: (order as any).id }))
     )
 
-    // 6. Decrement stock
-    for (const item of items) {
-      const product = productDetails.find(p => p.id === item.product_id)!
-      await supabase
-        .from('products')
-        .update({ stock_quantity: product.stock_quantity - item.quantity })
-        .eq('id', item.product_id)
-    }
+    // 6. Decrement stock via RPC (updates both products and stock tables atomically)
+    await supabase.rpc('update_stock_after_order', { p_order_id: (order as any).id })
 
     // 7. Award points if linked to customer
     if (customerId) {

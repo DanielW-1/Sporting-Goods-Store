@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       .eq('driver_id', profile.id)
       .order('order_date', { ascending: false })
 
-    if (status) query = query.eq('status', status)
+    if (status) query = query.eq('status', status as import('@/lib/supabase/types').OrderStatus)
 
     const { data, error } = await query
     if (error) throw new ApiError(400, error.message)

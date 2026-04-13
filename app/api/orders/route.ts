@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const result = checkoutSchema.safeParse(body)
     if (!result.success) throw new ApiError(400, result.error?.issues?.[0]?.message ?? 'Invalid request body')
 
-    const { payment_method, shipping_address, use_reward_points, use_discount_points } = result.data
+    const { payment_method, shipping_address, notes, use_reward_points, use_discount_points } = result.data
     const supabase = await createClient()
     const today = new Date().toISOString().split('T')[0]
 
@@ -38,11 +38,12 @@ export async function POST(request: Request) {
 
     // 3. Calculate total with discounts
     let total = 0
-    const itemsWithPrices: Array<{ product_id: string; quantity: number; price_at_purchase: number }> = []
+    const itemsWithPrices: Array<{ product_id: string; quantity: number; price_at_purchase: number; discount_applied: number }> = []
 
     for (const item of cartItems) {
       const product = (item as any).products
       let unitPrice: number = product.price
+      let discountApplied = 0
 
       // Check active discount
       const { data: discount } = await supabase
@@ -55,11 +56,12 @@ export async function POST(request: Request) {
         .maybeSingle()
 
       if (discount) {
+        discountApplied = discount.percentage
         unitPrice = unitPrice * (1 - discount.percentage / 100)
       }
 
       total += unitPrice * item.quantity
-      itemsWithPrices.push({ product_id: product.id, quantity: item.quantity, price_at_purchase: parseFloat(unitPrice.toFixed(2)) })
+      itemsWithPrices.push({ product_id: product.id, quantity: item.quantity, price_at_purchase: parseFloat(unitPrice.toFixed(2)), discount_applied: discountApplied })
     }
 
     // 4. Load policies
@@ -101,6 +103,7 @@ export async function POST(request: Request) {
         payment_status,
         total_amount: total,
         shipping_address,
+        notes: notes ?? null,
         tracking_number: generateTrackingNumber(),
       })
       .select()
@@ -118,16 +121,16 @@ export async function POST(request: Request) {
 
     // 11. Deduct points from profile
     if (use_discount_points || use_reward_points) {
-      const updates: Record<string, number> = {}
-      if (use_discount_points) updates.discount_points = Math.max(0, profile.discount_points - pointsUsed)
+      const pointUpdates: { discount_points?: number; reward_points?: number } = {}
+      if (use_discount_points) pointUpdates.discount_points = Math.max(0, profile.discount_points - pointsUsed)
       if (use_reward_points) {
         const rpValue = policyMap['reward_points_value_cents'] ?? 1
         const maxDiscount = (profile.reward_points * rpValue) / 100
         const deduction = Math.min(maxDiscount, total + maxDiscount) // recalc
         const rpUsed = Math.ceil((deduction * 100) / rpValue)
-        updates.reward_points = Math.max(0, profile.reward_points - rpUsed)
+        pointUpdates.reward_points = Math.max(0, profile.reward_points - rpUsed)
       }
-      await supabase.from('profiles').update(updates).eq('id', profile.id)
+      await supabase.from('profiles').update(pointUpdates).eq('id', profile.id)
     }
 
     // 12. Award points
@@ -173,7 +176,7 @@ export async function GET(request: NextRequest) {
       const customerId = searchParams.get('customer_id')
       const dateFrom = searchParams.get('date_from')
       const dateTo   = searchParams.get('date_to')
-      if (status)     query = query.eq('status', status)
+      if (status)     query = query.eq('status', status as import('@/lib/supabase/types').OrderStatus)
       if (customerId) query = query.eq('customer_id', customerId)
       if (dateFrom)   query = query.gte('order_date', dateFrom)
       if (dateTo)     query = query.lte('order_date', dateTo)

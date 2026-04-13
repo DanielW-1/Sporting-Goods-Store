@@ -12,6 +12,9 @@ const updateUserSchema = z.object({
   gender: z.string().optional(),
   reward_points: z.number().int().min(0).optional(),
   discount_points: z.number().int().min(0).optional(),
+  salary: z.number().min(0).optional(),
+  hire_date: z.string().optional(),
+  is_active: z.boolean().optional(),
 })
 
 export async function PUT(

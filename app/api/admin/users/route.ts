@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const role = request.nextUrl.searchParams.get('role')
 
     let query = supabase.from('profiles').select('*').order('created_at', { ascending: false })
-    if (role) query = query.eq('role', role)
+    if (role) query = query.eq('role', role as import('@/lib/supabase/types').Role)
 
     const { data, error } = await query
     if (error) throw new ApiError(400, error.message)

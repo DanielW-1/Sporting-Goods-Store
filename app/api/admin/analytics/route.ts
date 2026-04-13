@@ -9,27 +9,19 @@ export async function GET() {
 
     const now = new Date()
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
-    const endOfLastMonth   = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
 
-    // Total revenue this month
-    const { data: thisMonthOrders } = await supabase
-      .from('orders')
-      .select('total_amount')
-      .gte('order_date', startOfThisMonth)
-      .neq('status', 'cancelled')
+    // Monthly analytics from the view (revenue, transactions, unique customers, avg order value, refunds)
+    const { data: monthlyAnalytics, error: analyticsErr } = await supabase
+      .from('vw_manager_analytics')
+      .select('*')
 
-    const revenueThisMonth = (thisMonthOrders ?? []).reduce((s: number, o: any) => s + parseFloat(o.total_amount), 0)
+    if (analyticsErr) throw new ApiError(400, analyticsErr.message)
 
-    // Total revenue last month
-    const { data: lastMonthOrders } = await supabase
-      .from('orders')
-      .select('total_amount')
-      .gte('order_date', startOfLastMonth)
-      .lt('order_date', endOfLastMonth)
-      .neq('status', 'cancelled')
-
-    const revenueLastMonth = (lastMonthOrders ?? []).reduce((s: number, o: any) => s + parseFloat(o.total_amount), 0)
+    // Profit data (cost, revenue, gross/net profit per month)
+    const { data: profits } = await supabase
+      .from('profits')
+      .select('*')
+      .order('month', { ascending: false })
 
     // Total orders
     const { count: totalOrders } = await supabase.from('orders').select('id', { count: 'exact', head: true })
@@ -44,24 +36,11 @@ export async function GET() {
       ordersByStatus[o.status] = (ordersByStatus[o.status] ?? 0) + 1
     })
 
-    // Top 10 products
-    const { data: topItems } = await supabase
-      .from('order_items')
-      .select('product_id, quantity, products(id, name, category)')
-      .limit(200)
-
-    const productSales: Record<string, { product: any; totalQty: number }> = {}
-    ;(topItems ?? []).forEach((item: any) => {
-      const pid = item.product_id
-      productSales[pid] = productSales[pid]
-        ? { product: item.products, totalQty: productSales[pid].totalQty + item.quantity }
-        : { product: item.products, totalQty: item.quantity }
-    })
-
-    const topProducts = Object.values(productSales)
-      .sort((a, b) => b.totalQty - a.totalQty)
-      .slice(0, 10)
-      .map(({ product, totalQty }) => ({ ...product, total_quantity_sold: totalQty }))
+    // Top 10 products by sales using the view
+    const { data: topProductRows } = await supabase
+      .from('vw_top_products')
+      .select('product_id, name, category, brand, total_sales, avg_rating')
+      .limit(10)
 
     // Total customers
     const { count: totalCustomers } = await supabase
@@ -76,14 +55,27 @@ export async function GET() {
       .eq('role', 'customer')
       .gte('created_at', startOfThisMonth)
 
+    // Derive this month / last month revenue from the view data
+    const thisMonthStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]
+    const lastMonthStr = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]
+
+    const thisMonthRow = (monthlyAnalytics ?? []).find((r: any) =>
+      r.month?.startsWith(thisMonthStr)
+    )
+    const lastMonthRow = (monthlyAnalytics ?? []).find((r: any) =>
+      r.month?.startsWith(lastMonthStr)
+    )
+
     return Response.json({
-      revenue_this_month: revenueThisMonth,
-      revenue_last_month: revenueLastMonth,
+      revenue_this_month: Number((thisMonthRow as any)?.total_revenue ?? 0),
+      revenue_last_month: Number((lastMonthRow as any)?.total_revenue ?? 0),
       total_orders: totalOrders,
       orders_by_status: ordersByStatus,
-      top_selling_products: topProducts,
+      top_selling_products: topProductRows ?? [],
       total_customers: totalCustomers,
       new_customers_this_month: newCustomers,
+      monthly_analytics: monthlyAnalytics ?? [],
+      profits: profits ?? [],
     })
   } catch (error) {
     return handleApiError(error)
