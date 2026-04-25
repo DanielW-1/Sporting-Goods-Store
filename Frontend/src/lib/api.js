@@ -6,7 +6,8 @@ class ApiError extends Error {
 }
 
 export async function apiFetch(endpoint, options = {}) {
-  const url = endpoint.startsWith('http') ? endpoint : `/api${endpoint}`
+  const BASE_URL = import.meta.env.VITE_API_URL ?? ''
+  const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}/api${endpoint}`
   
   const res = await fetch(url, {
     headers: {
