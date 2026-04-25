@@ -8,10 +8,15 @@ class ApiError extends Error {
 export async function apiFetch(endpoint, options = {}) {
   const BASE_URL = import.meta.env.VITE_API_URL ?? ''
   const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}/api${endpoint}`
-  
+
+  const { supabase } = await import('./supabase')
+  const { data: { session } } = await supabase.auth.getSession()
+  const authHeader = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+
   const res = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
+      ...authHeader,
       ...options.headers,
     },
     credentials: 'include',
