@@ -15,6 +15,7 @@ const DeliveriesPage = () => {
   const [statusFilter, setStatusFilter] = useState('')
   const [updating, setUpdating] = useState(null)
   const [selectedStatuses, setSelectedStatuses] = useState({})
+  const [expectedDates, setExpectedDates] = useState({})
 
   useEffect(() => {
     fetchDeliveries()
@@ -26,7 +27,6 @@ const DeliveriesPage = () => {
       const params = statusFilter ? `?status=${statusFilter}` : ''
       const data = await api.get(`/deliveries${params}`)
       setDeliveries(data)
-      // Pre-fill the selected status for each order
       const initStatuses = {}
       data.forEach(o => { initStatuses[o.id] = o.status })
       setSelectedStatuses(initStatuses)
@@ -40,10 +40,17 @@ const DeliveriesPage = () => {
   const updateStatus = async (orderId) => {
     const newStatus = selectedStatuses[orderId]
     if (!newStatus) return
+    if (newStatus === 'shipped' && !expectedDates[orderId]) {
+      alert('Please select an expected delivery date.')
+      return
+    }
     if (!confirm(`Update order status to "${newStatus}"?`)) return
     setUpdating(orderId)
     try {
-     await api.put(`/orders/${orderId}/status`, { status: newStatus })
+      await api.put(`/orders/${orderId}/status`, {
+        status: newStatus,
+        ...(newStatus === 'shipped' && { expected_delivery_date: expectedDates[orderId] }),
+      })
       fetchDeliveries()
     } catch (err) {
       alert(err.message || 'Failed to update status. Please try again.')
@@ -95,7 +102,6 @@ const DeliveriesPage = () => {
                 </span>
               </div>
 
-              {/* Items */}
               <div className="border-t border-gray-100 pt-3 mb-4">
                 <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">Items</p>
                 <div className="space-y-1">
@@ -108,7 +114,6 @@ const DeliveriesPage = () => {
                 <p className="text-sm font-bold mt-2">Total: {formatPrice(order.total_amount)}</p>
               </div>
 
-              {/* Status Update */}
               {order.status !== 'delivered' && order.status !== 'cancelled' && (
                 <div className="border-t border-gray-100 pt-4">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Update Status</p>
@@ -122,6 +127,20 @@ const DeliveriesPage = () => {
                         <option key={s.value} value={s.value}>{s.label}</option>
                       ))}
                     </select>
+
+                    {selectedStatuses[order.id] === 'shipped' && (
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs text-gray-500">Expected Delivery Date</label>
+                        <input
+                          type="date"
+                          value={expectedDates[order.id] || ''}
+                          onChange={e => setExpectedDates(prev => ({ ...prev, [order.id]: e.target.value }))}
+                          className="border border-gray-300 rounded px-3 py-2 text-sm"
+                          min={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                    )}
+
                     <button
                       onClick={() => updateStatus(order.id)}
                       disabled={updating === order.id || selectedStatuses[order.id] === order.status}
