@@ -51,7 +51,6 @@ const TrackOrderPage = () => {
   if (notFound || !order) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <div className="text-6xl mb-4">🔍</div>
         <h2 className="text-2xl font-bold mb-2">Order Not Found</h2>
         <p className="text-gray-500 mb-6">We couldn't find an order with that ID.</p>
         <Link to="/orders" className="text-blue-600 hover:text-orange-600">
@@ -147,20 +146,32 @@ const TrackOrderPage = () => {
           )}
         </div>
 
+        {/* Receipt */}
+        {order.status?.toLowerCase() !== 'cancelled' && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <button
+              onClick={() => window.print()}
+              className="text-sm text-blue-600 hover:text-orange-600 font-medium"
+            >
+              Print / Save Receipt
+            </button>
+          </div>
+        )}
+
         {/* Cancel Button for pending/processing orders */}
         {['pending', 'processing'].includes(order.status?.toLowerCase()) && (
           <button
             onClick={async () => {
               if (confirm('Are you sure you want to cancel this order?')) {
                 try {
-                  await api.put(`/orders/${order.id}/cancel`)
+                  await api.patch(`/orders/${order.id}/status`, { status: 'cancelled' })
                   window.location.reload()
                 } catch (error) {
-                  alert(error.message)
+                  alert(error.message || 'Could not cancel order. Please contact support.')
                 }
               }
             }}
-            className="mt-4 text-red-600 text-sm hover:underline"
+            className="mt-3 text-red-600 text-sm hover:underline"
           >
             Cancel Order
           </button>

@@ -27,7 +27,11 @@ const CartPage = () => {
   if (cartItems.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <div className="text-7xl mb-4">🛒</div>
+        <div className="flex justify-center mb-6">
+          <svg className="w-16 h-16 stroke-gray-300" viewBox="0 0 24 24" fill="none" strokeWidth="1.2">
+            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+          </svg>
+        </div>
         <h2 className="text-2xl font-bold mb-2">Your cart is empty</h2>
         <p className="text-gray-500 mb-6">Looks like you haven't added any items yet.</p>
         <Link to="/products" className="bg-orange-600 text-white px-6 py-3 font-bold uppercase inline-block hover:bg-orange-700">
@@ -149,9 +153,9 @@ const CartPage = () => {
             </button>
 
             <div className="mt-4 flex justify-center gap-2 text-xs text-gray-400">
-              <span>🔒 Secure Checkout</span>
+              <span>Secure Checkout</span>
               <span>|</span>
-              <span>💳 PCI DSS Compliant</span>
+              <span>PCI DSS Compliant</span>
             </div>
           </div>
         </div>

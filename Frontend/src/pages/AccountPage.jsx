@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const AccountPage = () => {
-  const { profile, updateProfile, updatePassword } = useAuth()
+  const { profile, updateProfile, updatePassword, logout } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -80,6 +80,15 @@ const AccountPage = () => {
               <span className="text-sm text-gray-500">Discount Points</span>
               <span className="font-bold text-orange-600">{profile.discount_points || 0}</span>
             </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <button
+              onClick={logout}
+              className="w-full border border-red-300 text-red-600 py-2 text-sm font-semibold rounded hover:bg-red-50 transition"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
 

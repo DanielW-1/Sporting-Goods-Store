@@ -33,11 +33,17 @@ const InventoryPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const payload = {
+      ...formData,
+      price: parseFloat(formData.price),
+      stock_quantity: parseInt(formData.stock_quantity, 10),
+      low_stock_threshold: formData.low_stock_threshold ? parseInt(formData.low_stock_threshold, 10) : undefined,
+    }
     try {
       if (editingProduct) {
-        await api.put(`/products/${editingProduct.id}`, formData)
+        await api.put(`/products/${editingProduct.id}`, payload)
       } else {
-        await api.post('/products', formData)
+        await api.post('/products', payload)
       }
       setShowAddModal(false)
       setEditingProduct(null)

@@ -71,31 +71,43 @@ const HomePage = () => {
                 Shop Collection
               </Link>
               <Link to="/products?onSale=true" className="border-2 border-white/30 text-white px-6 py-3 font-bold uppercase text-sm hover:border-white/70 transition">
-                View All Sale
+                View Sales
               </Link>
             </div>
           </div>
         </div>
-        <div className="relative overflow-hidden group cursor-pointer h-96">
+        <Link to="/products?category=Fitness" className="relative overflow-hidden group cursor-pointer h-96 block">
           <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-navy-800/80 to-transparent flex flex-col justify-end p-5">
             <div className="text-orange-600 text-[10px] font-bold uppercase">Up to 40% off</div>
             <div className="font-bebas text-2xl text-white">Fitness Deals</div>
             <div className="text-white/50 text-xs">Weights, machines & more</div>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Promo Bar */}
       <div className="bg-navy-800 flex flex-wrap border-t-3 border-orange-600">
         {[
-          { icon: "📦", title: "Free Delivery", desc: "On orders over $299" },
-          { icon: "🔄", title: "Free Returns", desc: "30-day hassle-free returns" },
-          { icon: "🔒", title: "Secure Checkout", desc: "PCI DSS compliant payments" },
-          { icon: "💬", title: "24/7 Support", desc: "AI chatbot + live agents" },
+          {
+            icon: <svg className="w-6 h-6 stroke-orange-400" viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M5 8h14l-1 9H6L5 8z"/><path d="M9 8V5a3 3 0 016 0v3"/></svg>,
+            title: "Free Delivery", desc: "On orders over $299"
+          },
+          {
+            icon: <svg className="w-6 h-6 stroke-orange-400" viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4"/></svg>,
+            title: "Free Returns", desc: "30-day hassle-free returns"
+          },
+          {
+            icon: <svg className="w-6 h-6 stroke-orange-400" viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,
+            title: "Secure Checkout", desc: "PCI DSS compliant payments"
+          },
+          {
+            icon: <svg className="w-6 h-6 stroke-orange-400" viewBox="0 0 24 24" fill="none" strokeWidth="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
+            title: "24/7 Support", desc: "AI chatbot + live agents"
+          },
         ].map((item, idx) => (
           <div key={idx} className="flex-1 flex items-center gap-3 p-3 border-r border-white/5 last:border-none">
-            <span className="text-2xl">{item.icon}</span>
+            {item.icon}
             <div><strong className="block text-sm text-white/80">{item.title}</strong><span className="text-[11px] text-white/40">{item.desc}</span></div>
           </div>
         ))}

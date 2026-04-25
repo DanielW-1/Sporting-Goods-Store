@@ -6,6 +6,18 @@ import StarRating from '../components/StarRating'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { api } from '../lib/api'
 
+// Diverse fallback images by category
+const CATEGORY_IMAGES = {
+  Football: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&h=450&fit=crop',
+  Fitness: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=450&fit=crop',
+  Tennis: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=450&fit=crop',
+  Running: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=450&fit=crop',
+  Basketball: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&h=450&fit=crop',
+  Cycling: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=600&h=450&fit=crop',
+  Hiking: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=600&h=450&fit=crop',
+  Yoga: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=600&h=450&fit=crop',
+}
+
 const ProductDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -20,6 +32,8 @@ const ProductDetailPage = () => {
   const [reviewComment, setReviewComment] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
   const [hasPurchased, setHasPurchased] = useState(false)
+  const [addingToCart, setAddingToCart] = useState(false)
+  const [cartAdded, setCartAdded] = useState(false)
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,23 +73,35 @@ const ProductDetailPage = () => {
   }, [user, product])
 
   const handleAddToCart = async () => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
+    if (!user) { navigate('/login'); return }
+    setAddingToCart(true)
     try {
       await addToCart(product.id, quantity)
-      alert('Added to cart!')
+      setCartAdded(true)
+      setTimeout(() => setCartAdded(false), 1800)
     } catch (error) {
       alert(error.message)
+    } finally {
+      setAddingToCart(false)
     }
   }
 
+  const handleBuyNow = () => {
+    if (!user) { navigate('/login'); return }
+    const price = hasDiscount ? discountedPrice : product.price
+    navigate('/checkout', {
+      state: {
+        buyNowItem: {
+          product,
+          quantity,
+          price,
+        },
+      },
+    })
+  }
+
   const handleSubmitReview = async () => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
+    if (!user) { navigate('/login'); return }
     setSubmittingReview(true)
     try {
       await api.post('/reviews', {
@@ -96,24 +122,25 @@ const ProductDetailPage = () => {
   }
 
   if (loading) return <LoadingSpinner />
-
-  if (!product) {
-    return <div className="text-center py-20">Product not found</div>
-  }
+  if (!product) return <div className="text-center py-20">Product not found</div>
 
   const hasDiscount = product.active_discount
   const discountedPrice = hasDiscount
     ? product.price * (1 - product.active_discount.percentage / 100)
     : null
 
+  const productImage = product.image_url
+    || CATEGORY_IMAGES[product.category]
+    || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=450&fit=crop'
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="bg-white rounded-lg p-6">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Images */}
+          {/* Image */}
           <div className="md:w-1/2">
             <div className="bg-gray-100 rounded-lg overflow-hidden h-96">
-              <img src={product.image_url || 'https://via.placeholder.com/600x450'} alt={product.name} className="w-full h-full object-cover" />
+              <img src={productImage} alt={product.name} className="w-full h-full object-cover" />
             </div>
           </div>
 
@@ -150,40 +177,44 @@ const ProductDetailPage = () => {
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center"
-                >
-                  -
-                </button>
+                >-</button>
                 <span className="w-12 text-center">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => setQuantity(Math.min(product.stock_quantity || 99, quantity + 1))}
                   className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center"
-                >
-                  +
-                </button>
+                >+</button>
                 <span className="text-sm text-gray-500">{product.stock_quantity} in stock</span>
               </div>
             </div>
 
             <div className="mt-6 flex gap-3">
-              <button onClick={handleAddToCart} className="flex-1 bg-navy-800 text-white py-3 font-bold uppercase hover:bg-orange-600 transition">
-                Add to Cart
+              <button
+                onClick={handleAddToCart}
+                disabled={addingToCart}
+                className={`flex-1 py-3 font-bold uppercase transition ${
+                  cartAdded
+                    ? 'bg-green-600 text-white'
+                    : 'bg-navy-800 text-white hover:bg-orange-600'
+                }`}
+              >
+                {cartAdded ? 'Added to Cart!' : addingToCart ? 'Adding...' : 'Add to Cart'}
               </button>
-              <button className="px-6 py-3 border-2 border-navy-800 text-navy-800 font-bold uppercase hover:bg-navy-800 hover:text-white transition">
+              <button
+                onClick={handleBuyNow}
+                className="px-6 py-3 border-2 border-orange-600 text-orange-600 font-bold uppercase hover:bg-orange-600 hover:text-white transition"
+              >
                 Buy Now
               </button>
             </div>
           </div>
         </div>
 
-        {/* Reviews Section */}
+        {/* Reviews */}
         <div className="mt-10 pt-6 border-t border-gray-200">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold">Customer Reviews</h3>
             {user && hasPurchased && !showReviewForm && (
-              <button
-                onClick={() => setShowReviewForm(true)}
-                className="text-blue-600 hover:text-orange-600"
-              >
+              <button onClick={() => setShowReviewForm(true)} className="text-blue-600 hover:text-orange-600">
                 Write a Review
               </button>
             )}
@@ -200,7 +231,7 @@ const ProductDetailPage = () => {
                 <textarea
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
-                  placeholder="Share your experience with this product..."
+                  placeholder="Share your experience..."
                   className="w-full p-3 border border-gray-300 rounded-lg"
                   rows="3"
                 />

@@ -140,7 +140,11 @@ const ProductListingPage = () => {
             <LoadingSpinner />
           ) : products.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-lg border border-gray-200">
-              <div className="text-6xl mb-4">🔍</div>
+              <div className="flex justify-center mb-4">
+                <svg className="w-14 h-14 stroke-gray-300" viewBox="0 0 24 24" fill="none" strokeWidth="1.3">
+                  <circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/>
+                </svg>
+              </div>
               <h3 className="text-xl font-semibold mb-2">No products found</h3>
               <p className="text-gray-500">Try adjusting your filters or search terms</p>
               <button onClick={clearFilters} className="mt-4 text-blue-600 hover:text-orange-600">Clear all filters</button>

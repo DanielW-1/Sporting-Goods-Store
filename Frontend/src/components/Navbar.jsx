@@ -52,10 +52,8 @@ const Navbar = () => {
         <div className="flex gap-5">
           <Link to="/orders" className="hover:text-white transition">Track Order</Link>
           <Link to="/support" className="hover:text-white transition">Support</Link>
-          {!user ? (
+          {!user && (
             <Link to="/login" className="hover:text-white transition">Sign In</Link>
-          ) : (
-            <button onClick={logout} className="hover:text-white transition">Sign Out</button>
           )}
         </div>
       </div>

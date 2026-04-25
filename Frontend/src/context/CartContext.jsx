@@ -39,10 +39,14 @@ export const CartProvider = ({ children }) => {
   const addToCart = async (productId, quantity = 1) => {
     if (!user) throw new Error('Please login to add items to cart')
 
+    // Optimistic update — increment count immediately so UI feels instant
+    setCartCount(prev => prev + quantity)
+
     try {
       await api.post('/cart', { product_id: productId, quantity })
-      await fetchCart()
+      await fetchCart() // Sync real state in background
     } catch (error) {
+      setCartCount(prev => prev - quantity) // Revert on failure
       throw error
     }
   }

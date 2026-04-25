@@ -1,27 +1,32 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import StarRating from './StarRating'
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useCart()
+  const { addToCart, cartCount, setCartCount } = useCart()
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const [adding, setAdding] = useState(false)
   const [showAdded, setShowAdded] = useState(false)
 
   const handleAddToCart = async (e) => {
     e.preventDefault()
     e.stopPropagation()
     if (!user) {
-      window.location.href = '/login'
+      navigate('/login')
       return
     }
+    setAdding(true)
+    setShowAdded(true)
+    setTimeout(() => setShowAdded(false), 1500)
     try {
       await addToCart(product.id, 1)
-      setShowAdded(true)
-      setTimeout(() => setShowAdded(false), 1500)
     } catch (err) {
       alert(err.message)
+    } finally {
+      setAdding(false)
     }
   }
 
@@ -34,7 +39,7 @@ const ProductCard = ({ product }) => {
     <Link to={`/product/${product.id}`} className="group bg-white block transition-shadow hover:shadow-xl border border-transparent hover:border-blue-100">
       <div className="relative overflow-hidden h-56 bg-gray-100">
         <img
-          src={product.image_url || 'https://via.placeholder.com/300x300'}
+          src={product.image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop'}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
@@ -45,6 +50,11 @@ const ProductCard = ({ product }) => {
             </span>
           )}
         </div>
+        {product.sponsor_name && (
+          <span className="absolute top-3 right-3 bg-navy-800/80 text-white text-[9px] font-bold uppercase px-2 py-1">
+            Sponsored
+          </span>
+        )}
       </div>
       <div className="p-4">
         <div className="text-blue-600 font-barlow-condensed text-[10px] font-bold uppercase tracking-wide">{product.brand}</div>
@@ -66,20 +76,17 @@ const ProductCard = ({ product }) => {
           </div>
           <button
             onClick={handleAddToCart}
-            className="w-9 h-9 bg-navy-800 hover:bg-orange-600 flex items-center justify-center transition-colors"
+            disabled={adding}
+            className={`px-3 h-9 text-xs font-bold uppercase tracking-wide transition-colors ${
+              showAdded
+                ? 'bg-green-600 text-white'
+                : 'bg-navy-800 hover:bg-orange-600 text-white'
+            }`}
           >
-            <svg className="w-4 h-4 stroke-white" viewBox="0 0 24 24" fill="none" strokeWidth="2.5">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
+            {showAdded ? 'Added!' : 'Add to Cart'}
           </button>
         </div>
       </div>
-      {showAdded && (
-        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-2 rounded-full text-sm font-semibold animate-fade-in z-50">
-          Added to cart!
-        </div>
-      )}
     </Link>
   )
 }

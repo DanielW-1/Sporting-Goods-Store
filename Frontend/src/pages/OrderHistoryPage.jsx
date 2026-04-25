@@ -51,7 +51,6 @@ const OrderHistoryPage = () => {
   if (orders.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <div className="text-6xl mb-4">📦</div>
         <h2 className="text-2xl font-bold mb-2">No orders yet</h2>
         <p className="text-gray-500 mb-6">When you place an order, it will appear here.</p>
         <Link to="/products" className="bg-orange-600 text-white px-6 py-3 font-bold uppercase inline-block hover:bg-orange-700">
@@ -107,7 +106,7 @@ const OrderHistoryPage = () => {
                   {order.status}
                 </span>
                 <Link to={`/orders/${order.id}`} className="text-blue-600 text-sm hover:text-orange-600">
-                  View Details →
+                  {order.status === 'delivered' ? 'View Receipt' : 'View Details'} →
                 </Link>
               </div>
             </div>

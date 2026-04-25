@@ -125,13 +125,14 @@ const RegisterPage = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Phone Number</label>
+              <label className="block text-sm font-medium mb-1">Phone Number *</label>
               <input
                 type="tel"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
                 className="input-field"
+                required
               />
             </div>
             <div>
@@ -161,13 +162,14 @@ const RegisterPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Address</label>
+            <label className="block text-sm font-medium mb-1">Address *</label>
             <input
               type="text"
               name="address"
               value={formData.address}
               onChange={handleChange}
               className="input-field"
+              required
             />
           </div>
 
