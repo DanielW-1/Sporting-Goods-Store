@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const categories = [
   { id: 1, name: 'Football', image: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=80&h=80&fit=crop' },
@@ -12,13 +13,19 @@ const categories = [
 ]
 
 const CategoryBar = ({ selectedCategory, onSelectCategory }) => {
+  const navigate = useNavigate()
+
+const handleClick = (cat) => {
+  if (onSelectCategory) onSelectCategory(cat.name)
+  navigate(`/products?category=${encodeURIComponent(cat.name)}`)
+}
   return (
     <div className="bg-white border-b border-gray-200 overflow-x-auto scrollbar-hide">
       <div className="flex px-8">
         {categories.map(cat => (
           <button
             key={cat.id}
-            onClick={() => onSelectCategory(cat.name)}
+            onClick={() => handleClick(cat)}
             className={`flex flex-col items-center gap-1 py-3 px-5 border-b-3 transition-all flex-shrink-0 ${
               selectedCategory === cat.name
                 ? 'border-orange-600'
