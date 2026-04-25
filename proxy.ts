@@ -9,7 +9,7 @@ export function proxy(request: NextRequest) {
       headers: {
         'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
         'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Credentials': 'true',
       },
     })
@@ -18,7 +18,7 @@ export function proxy(request: NextRequest) {
   const response = NextResponse.next()
   response.headers.set('Access-Control-Allow-Origin', ALLOWED_ORIGIN)
   response.headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   response.headers.set('Access-Control-Allow-Credentials', 'true')
   return response
 }
