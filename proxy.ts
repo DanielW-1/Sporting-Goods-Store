@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const ALLOWED_ORIGIN = process.env.FRONTEND_URL || 'https://sporting-goods-store.vercel.app'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (request.method === 'OPTIONS') {
     return new NextResponse(null, {
       status: 204,
