@@ -1,3 +1,15 @@
+import { supabase } from './supabase'
+
+let cachedSession = null
+
+supabase.auth.getSession().then(({ data: { session } }) => {
+  cachedSession = session
+})
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  cachedSession = session
+})
+
 class ApiError extends Error {
   constructor(status, message) {
     super(message)
@@ -8,10 +20,9 @@ class ApiError extends Error {
 export async function apiFetch(endpoint, options = {}) {
   const BASE_URL = import.meta.env.VITE_API_URL ?? ''
   const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}/api${endpoint}`
-
-  const { supabase } = await import('./supabase')
-  const { data: { session } } = await supabase.auth.getSession()
-  const authHeader = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}
+  const authHeader = cachedSession?.access_token
+    ? { Authorization: `Bearer ${cachedSession.access_token}` }
+    : {}
 
   const res = await fetch(url, {
     headers: {
