@@ -60,6 +60,9 @@ export const AuthProvider = ({ children }) => {
       setProfile(result.user)
       setUser({ id: result.user.id, email: result.user.email })
     }
+    if (result.session) {
+      await supabase.auth.setSession(result.session)
+    }
     return result
   }
 

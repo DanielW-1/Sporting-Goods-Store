@@ -50,7 +50,7 @@ const Navbar = () => {
           <strong className="text-white/80">Free shipping</strong> on orders above $299 · Free 30-day returns
         </span>
         <div className="flex gap-5">
-          <Link to="/track" className="hover:text-white transition">Track Order</Link>
+          <Link to="/orders" className="hover:text-white transition">Track Order</Link>
           <Link to="/support" className="hover:text-white transition">Support</Link>
           {!user ? (
             <Link to="/login" className="hover:text-white transition">Sign In</Link>

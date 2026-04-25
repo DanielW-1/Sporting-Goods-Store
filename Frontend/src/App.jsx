@@ -12,7 +12,7 @@ import SupportChat from './components/SupportChat'
 import HomePage from './pages/HomePage'
 import ProductListingPage from './pages/ProductListingPage'
 import ProductDetailPage from './pages/ProductDetailPage'
-import LoginPage from './pages/LoginPage'
+import LoginPage from './pages/Login'
 import RegisterPage from './pages/RegisterPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 
@@ -33,6 +33,7 @@ import DeliveriesPage from './pages/dashboard/DeliveriesPage'
 import EmployeesPage from './pages/dashboard/EmployeesPage'
 import AnalyticsPage from './pages/dashboard/AnalyticsPage'
 import AdminPage from './pages/dashboard/AdminPage'
+import SuppliersPage from './pages/dashboard/SuppliersPage'
 
 function App() {
   return (
@@ -69,6 +70,7 @@ function App() {
                 <Route path="/dashboard/employees" element={<ProtectedRoute roles={['manager', 'admin']}><EmployeesPage /></ProtectedRoute>} />
                 <Route path="/dashboard/analytics" element={<ProtectedRoute roles={['manager', 'admin']}><AnalyticsPage /></ProtectedRoute>} />
                 <Route path="/dashboard/admin" element={<ProtectedRoute roles={['admin']}><AdminPage /></ProtectedRoute>} />
+                <Route path="/dashboard/suppliers" element={<ProtectedRoute roles={['manager', 'admin']}><SuppliersPage /></ProtectedRoute>} />
               </Routes>
             </main>
             <SupportChat />
