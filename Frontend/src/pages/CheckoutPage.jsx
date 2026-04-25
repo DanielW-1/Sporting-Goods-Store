@@ -4,10 +4,11 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 
+
 const CheckoutPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { cartItems, getCartTotal, clearCart } = useCart()
+  const { cartItems, getCartTotal, clearCart , loading } = useCart()
   const { profile } = useAuth()
 
   // "Buy Now" single item passed via location state
@@ -94,10 +95,12 @@ const CheckoutPage = () => {
     }
   }
 
-  if (!buyNowItem && cartItems.length === 0) {
-    navigate('/cart')
-    return null
-  }
+ if (!buyNowItem && !loading && cartItems.length === 0) {
+  navigate('/cart')
+  return null
+}
+
+if (!buyNowItem && loading) return <LoadingSpinner />
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
