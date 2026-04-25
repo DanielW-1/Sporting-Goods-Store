@@ -43,7 +43,7 @@ const DeliveriesPage = () => {
     if (!confirm(`Update order status to "${newStatus}"?`)) return
     setUpdating(orderId)
     try {
-      await api.patch(`/orders/${orderId}/status`, { status: newStatus })
+     await api.put(`/orders/${orderId}/status`, { status: newStatus })
       fetchDeliveries()
     } catch (err) {
       alert(err.message || 'Failed to update status. Please try again.')
