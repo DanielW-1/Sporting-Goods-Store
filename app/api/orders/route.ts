@@ -17,23 +17,42 @@ export async function POST(request: Request) {
     if (!result.success) throw new ApiError(400, result.error?.issues?.[0]?.message ?? 'Invalid request body')
 
     const { payment_method, shipping_address, notes, use_reward_points, use_discount_points } = result.data
+    const buyNow = (body as any).buy_now as { product_id: string; quantity: number; price: number } | undefined
     const supabase = await createClient()
     const today = new Date().toISOString().split('T')[0]
 
-    // 1. Fetch cart items
-    const { data: cartItems, error: cartErr } = await supabase
-      .from('cart_items')
-      .select('*, products(id, name, price, stock_quantity, is_active)')
-      .eq('user_id', profile.id)
+    let cartItems: any[]
 
-    if (cartErr) throw new ApiError(400, cartErr.message)
-    if (!cartItems || cartItems.length === 0) throw new ApiError(400, 'Cart is empty')
+    if (buyNow) {
+      // Buy Now — single product purchase without touching cart
+      const { data: product, error: productErr } = await supabase
+        .from('products')
+        .select('id, name, price, stock_quantity, is_active')
+        .eq('id', buyNow.product_id)
+        .single()
 
-    // 2. Validate stock
-    for (const item of cartItems) {
-      const product = (item as any).products
-      if (!product || !product.is_active) throw new ApiError(400, `Product ${product?.name ?? item.product_id} is unavailable`)
-      if (product.stock_quantity < item.quantity) throw new ApiError(400, `Insufficient stock for ${product.name}`)
+      if (productErr || !product) throw new ApiError(400, 'Product not found')
+      if (!product.is_active) throw new ApiError(400, `Product ${product.name} is unavailable`)
+      if (product.stock_quantity < buyNow.quantity) throw new ApiError(400, `Insufficient stock for ${product.name}`)
+
+      cartItems = [{ product_id: product.id, quantity: buyNow.quantity, products: product }]
+    } else {
+      // Normal cart checkout
+      const { data: fetchedItems, error: cartErr } = await supabase
+        .from('cart_items')
+        .select('*, products(id, name, price, stock_quantity, is_active)')
+        .eq('user_id', profile.id)
+
+      if (cartErr) throw new ApiError(400, cartErr.message)
+      if (!fetchedItems || fetchedItems.length === 0) throw new ApiError(400, 'Cart is empty')
+
+      for (const item of fetchedItems) {
+        const product = (item as any).products
+        if (!product || !product.is_active) throw new ApiError(400, `Product ${product?.name ?? item.product_id} is unavailable`)
+        if (product.stock_quantity < item.quantity) throw new ApiError(400, `Insufficient stock for ${product.name}`)
+      }
+
+      cartItems = fetchedItems
     }
 
     // 3. Calculate total with discounts
@@ -140,8 +159,10 @@ export async function POST(request: Request) {
       p_amount_paid: total,
     })
 
-    // 13. Clear cart
-    await supabase.from('cart_items').delete().eq('user_id', profile.id)
+    // 13. Clear cart (only for normal checkout, not buy-now)
+    if (!buyNow) {
+      await supabase.from('cart_items').delete().eq('user_id', profile.id)
+    }
 
     // Return order with items
     const { data: fullOrder } = await supabase
